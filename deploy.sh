@@ -1,77 +1,45 @@
-#!/bin/bash 
+#!/bin/bash
 
- 
+set -e
 
-set -e 
+APP_NAME="hello"
 
- 
+REPO_DIR="/home/ubuntu/apps/Lab9"
 
-APP_NAME="hello" 
+IMAGE_NAME="hello-image"
 
-REPO_DIR="/home/ubuntu/apps/Lab9" 
+CONTAINER_NAME="hello-container"
 
-IMAGE_NAME="hello-image" 
+PORT=8080   # change to your app port
 
-CONTAINER_NAME="hello-container" 
 
-PORT=8080   # change to your app port 
+echo "=== Pulling latest code ==="
+cd $REPO_DIR
+git fetch --all
 
- 
+git reset --hard origin/main
 
-echo "=== Pulling latest code ===" 
+echo "=== Building Docker image ==="
+docker --debug build -t $IMAGE_NAME .
 
-cd $REPO_DIR 
+echo "=== Stopping old container (if exists) ==="
+if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
+    docker stop $CONTAINER_NAME
+fi
 
-git fetch --all 
+echo "=== Removing old container (if exists) ==="
+if [ "$(docker ps -aq -f name=$CONTAINER_NAME)" ]; then
+    docker rm $CONTAINER_NAME
+fi
 
-git reset --hard origin/main 
+echo "=== Running new container ==="
+docker run -d \
+  --name $CONTAINER_NAME \
+  -p $PORT:$PORT \
+  --restart always \
+  $IMAGE_NAME
 
- 
+echo "=== Cleaning up old images ==="
+docker image prune -f
 
-echo "=== Building Docker image ===" 
-
-docker --debug build -t $IMAGE_NAME . 
-
- 
-
-echo "=== Stopping old container (if exists) ===" 
-
-if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then 
-
-    docker stop $CONTAINER_NAME 
-
-fi 
-
- 
-
-echo "=== Removing old container (if exists) ===" 
-
-if [ "$(docker ps -aq -f name=$CONTAINER_NAME)" ]; then 
-
-    docker rm $CONTAINER_NAME 
-
-fi 
-
- 
-
-echo "=== Running new container ===" 
-
-docker run -d \ 
-
-  --name $CONTAINER_NAME \ 
-
-  -p $PORT:$PORT \ 
-
-  --restart always \ 
-
-  $IMAGE_NAME 
-
- 
-
-echo "=== Cleaning up old images ===" 
-
-docker image prune -f 
-
- 
-
-echo "=== Deployment complete ===" 
+echo "=== Deployment complete ==="
