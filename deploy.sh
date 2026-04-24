@@ -30,7 +30,7 @@ git reset --hard origin/main
 
 echo "=== Building Docker image ===" 
 
-docker build -t $IMAGE_NAME . 
+docker --debug build -t $IMAGE_NAME . 
 
  
 
